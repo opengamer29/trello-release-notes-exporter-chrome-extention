@@ -1,10 +1,11 @@
 'use strict';
 
-var listName = "Blocked";
+var completeListName = "Handsome Complete";
+var knowIssuesListName = "Known Issues";
 var dateSince = new Date();
 dateSince.setDate(dateSince.getDate() - 14);
 
-var defectsLablelsNameArray = ["S0", "S1", "S2", "S3"];
+var defectsLablesNameArray = ["Defect S0: Critical/Blocker", "Defect S1: Major", "Defect S2: Average", "Defect S3: Trivial/Minor"];
 
 var xhr = new XMLHttpRequest();
 
@@ -52,7 +53,7 @@ chrome.tabs.query({currentWindow: true, active: true}, function (tabs) {
             var lastestActionMovedToList = actions.filter(function (item) {
                 if (item.type === "updateCard") {
                     if (item.data.listAfter !== undefined) {
-                        if (item.date > dateSince && item.data.listAfter.name === "Blocked") {
+                        if (item.date > dateSince && item.data.listAfter.name === completeListName) {
                             return true;
                         }
                     }
@@ -60,23 +61,74 @@ chrome.tabs.query({currentWindow: true, active: true}, function (tabs) {
                 return false;
             });
 
+            console.log("Latest actions:");
             console.log(lastestActionMovedToList);
 
-            var cards = response.cards;
+            var outputString = "What's new:\n\n";
+            var linkToTrelloCardDir = "https://trello.com/c/";
 
-            defectsLablelsNameArray.forEach(function (defectLabelItem) { //TODO: refactor to use label ID
-                var defectCardArray = cards.filter(function (cardItem) {
-                    var isLabelFound = false;
-                    cardItem.labels.forEach(function (labelItem) {
-                        if (labelItem.name === defectLabelItem) {
-                            isLabelFound = true;
+            console.log(lastestActionMovedToList.isArray);
+
+            lastestActionMovedToList.forEach(function (item) {
+                console.log(item.data.card.name);
+                outputString = outputString.concat(" - ", item.data.card.name, " - ");
+                outputString = outputString.concat(linkToTrelloCardDir, item.data.card.shortLink);
+                outputString = outputString.concat("\n");
+            });
+
+            outputString = outputString.concat("\n\n");
+
+            var lists = response.lists;
+            var knowIssuesListId;
+
+            for (var i = 0, isIdFound = false; i < lists.length && !isIdFound; ++i) {
+                if (lists[i].name === knowIssuesListName) {
+                    knowIssuesListId = lists[i].id;
+                    isIdFound = true;
+                }
+            }
+
+            if (knowIssuesListId !== undefined) {
+                var cards = response.cards;
+
+                outputString = outputString.concat("Known issues:\n");
+
+                defectsLablesNameArray.forEach(function (defectLabelItem) { //TODO: refactor to use label ID
+                    outputString = outputString.concat("\n", defectLabelItem, "\n");
+                    var isAtLeastOneCardFound = false;
+                    var defectCardArray = cards.filter(function (cardItem) {
+                        if (cardItem.idList !== knowIssuesListId) {
+                            return
                         }
+                        var isLabelFound = false;
+                        cardItem.labels.forEach(function (labelItem) {
+                            if (labelItem.name === defectLabelItem) {
+                                isLabelFound = true;
+                            }
+                        });
+                        if (isLabelFound) {
+                            outputString = outputString.concat(" - ", cardItem.name, " - ");
+                            outputString = outputString.concat(cardItem.shortUrl);
+                            outputString = outputString.concat("\n");
+                            isAtLeastOneCardFound = true;
+                        }
+                        return isLabelFound;
                     });
-                    return isLabelFound;
+                    if (!isAtLeastOneCardFound) {
+                        outputString = outputString.concat(" - none \n");
+                    }
+                    console.log(defectLabelItem);
+                    console.log(defectCardArray);
                 });
-                console.log(defectLabelItem);
-                console.log(defectCardArray);
+            } else {
+                outputString = outputString.concat("known issue list was not found. check specified list name.");
+            }
+
+            chrome.runtime.sendMessage({
+                type: 'copy',
+                text: outputString
             })
+
         }
 
     } else {
