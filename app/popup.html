@@ -1,6 +1,6 @@
 <!doctype html>
 <html>
-  <head>
+<head>
     <meta charset="utf-8">
     <!-- build:css styles/popup-vendor.css -->
     <!-- bower:css -->
@@ -8,18 +8,63 @@
     <!-- endbuild -->
     <!-- build:css styles/main.css -->
     <link href="styles/main.css" rel="stylesheet">
-    <!-- endbuild -->
-  </head>
-  <body>
-    <h1>'Allo, 'Allo!</h1>
 
-    <!-- build:js scripts/popup-vendor.js -->
-    <!-- bower:js -->
-    <!-- endbower -->
     <!-- endbuild -->
-
-    <!-- build:js scripts/popup.js -->
     <script src="scripts/popup.js"></script>
-    <!-- endbuild -->
-  </body>
+</head>
+<body>
+<h1>TRE</h1>
+
+
+<label>
+    Complete list name:
+    <input type="text" id="completeList">
+</label>
+<br>
+<br>
+
+<label>
+    Know Issues list name:
+    <input type="text" id="knowIssuesListName">
+</label>
+<br>
+<br>
+
+<label>
+    Length of sprint in days:
+    <input type="text" id="days">
+</label>
+<br>
+<br>
+
+<label>
+    Name of Blocker defect Label:
+    <input type="text" id="blockerDefectLabelName">
+</label>
+<br>
+<br>
+
+<label>
+    Name of Major defect Label:
+    <input type="text" id="majorDefectLabelName">
+</label>
+<br>
+<br>
+
+<label>
+    Name of Average defect Label
+    <input type="text" id="averageDefectLabelName">
+</label>
+<br>
+<br>
+
+<label>
+    Name of Minor defect Label
+    <input type="text" id="minorDefectLabelName">
+</label>
+<br>
+<br>
+
+<button id="getButton" onclick="getReleaseNotes()">get</button>
+</body>
 </html>

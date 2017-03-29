@@ -17,5 +17,6 @@ chrome.runtime.onMessage.addListener(function(message) {
         input.select();
         document.execCommand('Copy');
         input.remove();
+        //alert('Information in your clipboard.'); //TODO: notificate about end of procces
     }
 });
