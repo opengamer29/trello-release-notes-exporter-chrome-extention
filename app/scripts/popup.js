@@ -1,9 +1,9 @@
 'use strict';
 
-// var completeListName = "Handsome Complete";
-// var knowIssuesListName = "Known Issues";
+// var completeListName = 'Handsome Complete';
+// var knowIssuesListName = 'Known Issues';
 // var numberOfDates = 14;
-// var defectsLablesNameArray = ["Defect S0: Critical/Blocker", "Defect S1: Major", "Defect S2: Average", "Defect S3: Trivial/Minor"];
+// var defectsLablesNameArray = ['Defect S0: Critical/Blocker', 'Defect S1: Major', 'Defect S2: Average', 'Defect S3: Trivial/Minor'];
 
 var completeListDomElement;
 var knowIssuesListNameDomElement;
@@ -12,6 +12,7 @@ var blockerDefectLabelNameDomElement;
 var majorDefectLabelNameDomElement;
 var averageDefectLabelNameDomElement;
 var minorDefectLabelNameDomElement;
+var statusLevelDomElement;
 
 var getButtonDomElement;
 
@@ -41,6 +42,8 @@ document.addEventListener('DOMContentLoaded', function () {
     getButtonDomElement.onclick = function () {
         getReleaseNotes();
     };
+
+    statusLevelDomElement = document.getElementById('status');
 });
 
 //getReleasNotes(completeListName, knowIssuesListName, numberOfDates, defectsLablesNameArray);
@@ -58,19 +61,20 @@ function getReleaseNotes() {
 }
 
 function getReleasNotes(completeListName, knowIssuesListName, numberOfDates, defectLabelsNameArray) {
+    statusLevelDomElement.textContent = "In progress...";
 
     var dateSince = new Date();
     dateSince.setDate(dateSince.getDate() - numberOfDates);
 
     chrome.tabs.query({currentWindow: true, active: true}, function (tabs) {
         var currentUrl = tabs[0].url;
-        console.log("URL = " + currentUrl);
+        console.log('URL = ' + currentUrl);
         var indexOfLastSlash = 0;
 
-        if (currentUrl.indexOf("https://trello.com") === 0) {
+        if (currentUrl.indexOf('https://trello.com') === 0) {
             var pos = 0;
             while (true) {
-                var foundPos = currentUrl.indexOf("\/", pos);
+                var foundPos = currentUrl.indexOf('\/', pos);
                 if (foundPos === -1 || foundPos === (currentUrl.length - 1)) break;
 
                 console.log(foundPos);
@@ -80,15 +84,15 @@ function getReleasNotes(completeListName, knowIssuesListName, numberOfDates, def
 
             var xhr = new XMLHttpRequest();
 
-            var jsonUrl = currentUrl.substring(0, indexOfLastSlash) + ".json";
-            console.log("jsonUrl url = " + jsonUrl);
+            var jsonUrl = currentUrl.substring(0, indexOfLastSlash) + '.json';
+            console.log('jsonUrl url = ' + jsonUrl);
 
             xhr.open('GET', jsonUrl, false);
 
             xhr.send(); //TODO: move out of main thread
 
             if (xhr.status != 200) {
-                console.log("error while request json file. please check that you are on trello board page.")
+                console.log('error while request json file. please check that you are on trello board page.')
             } else {
                 var response = JSON.parse(xhr.responseText, function (key, value) {
                     if (key === 'date') {
@@ -105,7 +109,7 @@ function getReleasNotes(completeListName, knowIssuesListName, numberOfDates, def
 
                 var isAtLeastOneNewFeatureCardFound = false;
                 var lastestActionMovedToList = actions.filter(function (item) {
-                    if (item.type === "updateCard") {
+                    if (item.type === 'updateCard') {
                         if (item.data.listAfter !== undefined) {
                             if (item.date > dateSince && item.data.listAfter.name === completeListName) {
                                 isAtLeastOneNewFeatureCardFound = true;
@@ -116,24 +120,24 @@ function getReleasNotes(completeListName, knowIssuesListName, numberOfDates, def
                     return false;
                 });
 
-                console.log("Latest actions:");
+                console.log('Latest actions:');
                 console.log(lastestActionMovedToList);
 
-                var outputString = "What's new:\n\n";
-                var linkToTrelloCardDir = "https://trello.com/c/";
+                var outputString = 'What\'s new:\n\n';
+                var linkToTrelloCardDir = 'https://trello.com/c/';
 
                 lastestActionMovedToList.forEach(function (item) {
                     console.log(item.data.card.name);
-                    outputString = outputString.concat(" - ", item.data.card.name, " - ");
+                    outputString = outputString.concat(' - ', item.data.card.name, ' - ');
                     outputString = outputString.concat(linkToTrelloCardDir, item.data.card.shortLink);
-                    outputString = outputString.concat("\n");
+                    outputString = outputString.concat('\n');
                 });
 
                 if (!isAtLeastOneNewFeatureCardFound) {
-                    outputString = outputString.concat(" - none\n");
+                    outputString = outputString.concat(' - none\n');
                 }
 
-                outputString = outputString.concat("\n\n");
+                outputString = outputString.concat('\n\n');
 
                 var lists = response.lists;
                 var knowIssuesListId;
@@ -148,10 +152,10 @@ function getReleasNotes(completeListName, knowIssuesListName, numberOfDates, def
                 if (knowIssuesListId !== undefined) {
                     var cards = response.cards;
 
-                    outputString = outputString.concat("Known issues:\n");
+                    outputString = outputString.concat('Known issues:\n');
 
                     defectLabelsNameArray.forEach(function (defectLabelItem) { //TODO: refactor to use label ID
-                        outputString = outputString.concat("\n", defectLabelItem, "\n");
+                        outputString = outputString.concat('\n', defectLabelItem, '\n');
                         var isAtLeastOneCardFound = false;
                         var defectCardArray = cards.filter(function (cardItem) {
                             if (cardItem.idList !== knowIssuesListId) {
@@ -164,21 +168,21 @@ function getReleasNotes(completeListName, knowIssuesListName, numberOfDates, def
                                 }
                             });
                             if (isLabelFound) {
-                                outputString = outputString.concat(" - ", cardItem.name, " - ");
+                                outputString = outputString.concat(' - ', cardItem.name, ' - ');
                                 outputString = outputString.concat(cardItem.shortUrl);
-                                outputString = outputString.concat("\n");
+                                outputString = outputString.concat('\n');
                                 isAtLeastOneCardFound = true;
                             }
                             return isLabelFound;
                         });
                         if (!isAtLeastOneCardFound) {
-                            outputString = outputString.concat(" - none \n");
+                            outputString = outputString.concat(' - none \n');
                         }
                         console.log(defectLabelItem);
                         console.log(defectCardArray);
                     });
                 } else {
-                    outputString = outputString.concat("known issue list was not found. check specified list name.");
+                    outputString = outputString.concat('known issue list was not found. check specified list name.');
                 }
 
                 chrome.runtime.sendMessage({
@@ -189,9 +193,9 @@ function getReleasNotes(completeListName, knowIssuesListName, numberOfDates, def
             }
 
         } else {
-            console.log("not trello page");
+            console.log('not trello page');
         }
-
+        statusLevelDomElement.textContent = "Notes are copied to clipboard.";
     });
 }
 
